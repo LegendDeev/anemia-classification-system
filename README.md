@@ -122,8 +122,3 @@ python src/predict.py --hb -5.0 --rbc 4.8 --mcv 87.5 --mch 29.5 --mchc 33.8
 | Logistic Regression | 76.72% | 76.64% | 76.72% | 76.48% | 91.20% |
 | K-Nearest Neighbors (KNN) | 73.54% | 74.12% | 73.54% | 73.59% | 88.36% |
 
----
-
-## 📖 Complete Documentation for College Submission
-* **Full Technical Report**: [`PROJECT_REPORT.md`](PROJECT_REPORT.md)
-* **Professor Viva Voce Defense Guide**: [`VIVA_DEFENSE_GUIDE.md`](VIVA_DEFENSE_GUIDE.md)
