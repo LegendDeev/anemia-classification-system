@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Anemia Classification System | Clinical CBC Machine Learning</title>
+    <!-- Modern Bootstrap 5 & Google Fonts -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark shadow-sm">
+    <div class="container">
+        <a class="navbar-brand d-flex align-items-center" href="/">
+            <span class="badge bg-danger me-2">AI Diagnostic</span>
+            <span class="fw-bold tracking-tight">Anemia Classification System (CBC)</span>
+        </a>
+        <div class="text-white-50 small d-none d-md-block">
+            5 Parameters &bull; 5 Machine Learning Algorithms &bull; TriHemo-MCV Validated
+        </div>
+    </div>
+</nav>
+
+<div class="container py-4">
+
+    <!-- Header Banner -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="p-4 bg-white rounded-3 shadow-sm border-start border-4 border-primary">
+                <div class="d-flex justify-content-between align-items-center flex-wrap">
+                    <div>
+                        <h2 class="h4 fw-bold text-dark mb-1">Clinical Hematology Diagnostic Engine</h2>
+                        <p class="text-muted mb-0 small">
+                            Classifies anemia-related phenotypes from 5 Complete Blood Count (CBC) measurements:
+                            <strong>Hemoglobin, RBC Count, MCV, MCH, and MCHC</strong>. Evaluated across all 5 benchmark ML algorithms.
+                        </p>
+                    </div>
+                    <div class="mt-2 mt-md-0">
+                        <span class="badge bg-light text-dark border me-1">Dataset: TriHemo-MCV (5,037 Samples)</span>
+                        <span class="badge bg-success-subtle text-success border border-success">Verified Ethical IRB</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Error Alert Banner -->
+    {% if error %}
+    <div class="alert alert-danger alert-dismissible fade show shadow-sm" role="alert">
+        <div class="d-flex align-items-center">
+            <strong class="me-2">Defensive Validation Interception:</strong>
+            <span>{{ error }}</span>
+        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+    {% endif %}
+
+    <!-- Advisory Warning Banner -->
+    {% if warnings %}
+    {% for w in warnings %}
+    <div class="alert alert-warning alert-dismissible fade show shadow-sm" role="alert">
+        <div class="d-flex align-items-center">
+            <strong class="me-2">Clinical Advisory:</strong>
+            <span>{{ w }}</span>
+        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+    {% endfor %}
+    {% endif %}
+
+    <div class="row g-4">
+        <!-- Input Form Section -->
+        <div class="col-lg-5">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-header bg-white py-3 border-bottom">
+                    <h5 class="card-title fw-bold mb-0 text-primary">Patient Blood Measurements</h5>
+                    <small class="text-muted">Enter the 5 CBC laboratory values</small>
+                </div>
+                <div class="card-body">
+
+                    <!-- Instant Preset Buttons for Demo -->
+                    <div class="mb-3 p-2 bg-light rounded border">
+                        <small class="d-block text-muted fw-semibold mb-2">Examiner Demo Presets:</small>
+                        <div class="d-flex flex-wrap gap-1">
+                            <button type="button" class="btn btn-sm btn-outline-success" onclick="loadPreset('normal')">Normal Patient</button>
+                            <button type="button" class="btn btn-sm btn-outline-danger" onclick="loadPreset('anemic')">Iron-Deficiency Anemia</button>
+                            <button type="button" class="btn btn-sm btn-outline-warning" onclick="loadPreset('microcytosis')">Compensated Microcytosis</button>
+                            <button type="button" class="btn btn-sm btn-outline-secondary" onclick="loadPreset('invalid')">Test Invalid (-Hb)</button>
+                        </div>
+                    </div>
+
+                    <form method="POST" action="/predict" id="predictionForm">
+                        <!-- Hemoglobin -->
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between">
+                                <label for="hgb" class="form-label fw-semibold small">1. Hemoglobin (HGB)</label>
+                                <span class="text-muted small">Ref: 12.0 - 17.5 g/dL</span>
+                            </div>
+                            <div class="input-group">
+                                <input type="number" step="0.1" class="form-control" id="hgb" name="hgb" 
+                                       value="{{ inputs.HGB if inputs else '13.8' }}" required>
+                                <span class="input-group-text">g/dL</span>
+                            </div>
+                        </div>
+
+                        <!-- RBC Count -->
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between">
+                                <label for="rbc" class="form-label fw-semibold small">2. Red Blood Cell Count (RBC)</label>
+                                <span class="text-muted small">Ref: 3.8 - 5.9 M/µL</span>
+                            </div>
+                            <div class="input-group">
+                                <input type="number" step="0.01" class="form-control" id="rbc" name="rbc" 
+                                       value="{{ inputs.RBC if inputs else '4.85' }}" required>
+                                <span class="input-group-text">M/µL</span>
+                            </div>
+                        </div>
+
+                        <!-- MCV -->
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between">
+                                <label for="mcv" class="form-label fw-semibold small">3. Mean Corpuscular Volume (MCV)</label>
+                                <span class="text-muted small">Ref: 80.0 - 100.0 fL</span>
+                            </div>
+                            <div class="input-group">
+                                <input type="number" step="0.1" class="form-control" id="mcv" name="mcv" 
+                                       value="{{ inputs.MCV if inputs else '85.5' }}" required>
+                                <span class="input-group-text">fL</span>
+                            </div>
+                        </div>
+
+                        <!-- MCH -->
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between">
+                                <label for="mch" class="form-label fw-semibold small">4. Mean Corpuscular Hemoglobin (MCH)</label>
+                                <span class="text-muted small">Ref: 27.0 - 33.0 pg</span>
+                            </div>
+                            <div class="input-group">
+                                <input type="number" step="0.1" class="form-control" id="mch" name="mch" 
+                                       value="{{ inputs.MCH if inputs else '28.8' }}" required>
+                                <span class="input-group-text">pg</span>
+                            </div>
+                        </div>
+
+                        <!-- MCHC -->
+                        <div class="mb-4">
+                            <div class="d-flex justify-content-between">
+                                <label for="mchc" class="form-label fw-semibold small">5. MCHC Concentration</label>
+                                <span class="text-muted small">Ref: 31.0 - 36.0 g/dL</span>
+                            </div>
+                            <div class="input-group">
+                                <input type="number" step="0.1" class="form-control" id="mchc" name="mchc" 
+                                       value="{{ inputs.MCHC if inputs else '33.6' }}" required>
+                                <span class="input-group-text">g/dL</span>
+                            </div>
+                        </div>
+
+                        <!-- Model Selection Dropdown -->
+                        <div class="mb-4 p-2 bg-light rounded border">
+                            <label for="model_choice" class="form-label fw-semibold small text-primary d-flex align-items-center justify-content-between mb-1">
+                                <span>Active Diagnostic Engine:</span>
+                                <span class="badge bg-primary-subtle text-primary border border-primary">Default: Random Forest</span>
+                            </label>
+                            <select class="form-select form-select-sm" id="model_choice" name="model_choice" onchange="updateHeaderSwitcher(this.value)">
+                                <option value="random_forest" {% if selected_model == 'random_forest' or not selected_model %}selected{% endif %}>
+                                    Random Forest Classifier (Default - 92.3% AUC)
+                                </option>
+                                <option value="decision_tree" {% if selected_model == 'decision_tree' %}selected{% endif %}>
+                                    Decision Tree Classifier (CART - 91.3% AUC)
+                                </option>
+                                <option value="svm" {% if selected_model == 'svm' %}selected{% endif %}>
+                                    Support Vector Machine - SVM (RBF Kernel - 91.2% AUC)
+                                </option>
+                                <option value="logistic_regression" {% if selected_model == 'logistic_regression' %}selected{% endif %}>
+                                    Logistic Regression (Multinomial - 91.2% AUC)
+                                </option>
+                                <option value="knn" {% if selected_model == 'knn' %}selected{% endif %}>
+                                    K-Nearest Neighbors - KNN (Distance Metric - 88.4% AUC)
+                                </option>
+                            </select>
+                            <div class="form-text small text-muted" style="font-size: 0.75rem;">
+                                Select any of the 5 algorithms to evaluate patient blood indices.
+                            </div>
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary py-2 fw-semibold shadow-sm">
+                                Run Clinical Anemia Classification
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Result / Diagnosis Output Section -->
+        <div class="col-lg-7">
+            {% if result and result.success %}
+            <div class="card shadow-sm border-0 mb-4">
+                <div class="card-header bg-white py-3 border-bottom d-flex justify-content-between align-items-center flex-wrap gap-2">
+                    <h5 class="card-title fw-bold mb-0">Diagnostic Classification Result</h5>
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="badge bg-primary text-white py-2 px-2 fw-semibold small">Engine:</span>
+                        <select class="form-select form-select-sm border-primary fw-semibold shadow-sm" id="card_engine_switcher" 
+                                style="width: auto; min-width: 240px; cursor: pointer;" 
+                                onchange="switchEngineAndSubmit(this.value)" 
+                                title="Click to switch active diagnostic model">
+                            <option value="random_forest" {% if selected_model == 'random_forest' or not selected_model %}selected{% endif %}>
+                                🌲 Random Forest (Default)
+                            </option>
+                            <option value="decision_tree" {% if selected_model == 'decision_tree' %}selected{% endif %}>
+                                🌳 Decision Tree Classifier
+                            </option>
+                            <option value="svm" {% if selected_model == 'svm' %}selected{% endif %}>
+                                ⚡ Support Vector Machine (SVM)
+                            </option>
+                            <option value="logistic_regression" {% if selected_model == 'logistic_regression' %}selected{% endif %}>
+                                📈 Logistic Regression
+                            </option>
+                            <option value="knn" {% if selected_model == 'knn' %}selected{% endif %}>
+                                📍 K-Nearest Neighbors (KNN)
+                            </option>
+                        </select>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <!-- Main Diagnosis Badge -->
+                    <div class="p-4 rounded-3 text-center mb-4 
+                        {% if result.predicted_category == 'Non-Anemic' %}bg-success-subtle text-success border border-success
+                        {% elif result.predicted_category == 'Anemic' %}bg-danger-subtle text-danger border border-danger
+                        {% else %}bg-warning-subtle text-warning-emphasis border border-warning{% endif %}">
+                        <small class="text-uppercase fw-semibold tracking-wider d-block mb-1">Predicted Clinical Condition</small>
+                        <h2 class="display-6 fw-bold mb-2">{{ result.predicted_category }}</h2>
+                        <span class="badge bg-dark px-3 py-2 fs-6">Confidence: {{ result.confidence_percentage }}%</span>
+                    </div>
+
+                    <!-- Probability Bars -->
+                    <h6 class="fw-bold mb-2 small text-uppercase text-muted">Category Probability Breakdown</h6>
+                    <div class="mb-4">
+                        {% for cls_name, prob in result.class_probabilities.items() %}
+                        <div class="mb-2">
+                            <div class="d-flex justify-content-between small mb-1">
+                                <span class="fw-semibold">{{ cls_name }}</span>
+                                <span class="text-muted">{{ prob }}%</span>
+                            </div>
+                            <div class="progress" style="height: 8px;">
+                                <div class="progress-bar 
+                                    {% if cls_name == 'Non-Anemic' %}bg-success
+                                    {% elif cls_name == 'Anemic' %}bg-danger
+                                    {% else %}bg-warning{% endif %}" 
+                                    role="progressbar" style="width: {{ prob }}%;"></div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+
+                    <!-- All 5 Models Consensus -->
+                    <h6 class="fw-bold mb-2 small text-uppercase text-muted">All 5 Machine Learning Algorithms Consensus</h6>
+                    <div class="table-responsive mb-4">
+                        <table class="table table-sm table-bordered align-middle">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Algorithm</th>
+                                    <th>Prediction</th>
+                                    <th>Consensus Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for m_name, p_cat in result.all_models_predictions.items() %}
+                                <tr>
+                                    <td class="fw-medium">{{ m_name }}</td>
+                                    <td>
+                                        <span class="badge 
+                                            {% if p_cat == 'Non-Anemic' %}bg-success
+                                            {% elif p_cat == 'Anemic' %}bg-danger
+                                            {% else %}bg-warning text-dark{% endif %}">
+                                            {{ p_cat }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        {% if p_cat == result.predicted_category %}
+                                        <span class="text-success small fw-semibold">&check; In Agreement</span>
+                                        {% else %}
+                                        <span class="text-muted small">&bull; Alternative Perspective</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Clinical Parameters Status -->
+                    <h6 class="fw-bold mb-2 small text-uppercase text-muted">Blood Parameters Reference Analysis</h6>
+                    <div class="row g-2">
+                        {% for p_key, p_info in result.parameter_analysis.items() %}
+                        <div class="col-sm-6">
+                            <div class="p-2 border rounded bg-light small d-flex justify-content-between align-items-center">
+                                <div>
+                                    <span class="fw-semibold">{{ p_key }}:</span> {{ p_info.value }} {{ p_info.unit }}
+                                </div>
+                                <span class="badge bg-{{ p_info.badge_class }}">{{ p_info.status }}</span>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+
+                </div>
+            </div>
+            {% else %}
+            <!-- Initial Empty State -->
+            <div class="card shadow-sm border-0 h-100 d-flex justify-content-center align-items-center p-5 text-center bg-light">
+                <div class="p-4" style="max-width: 450px;">
+                    <div class="mb-3 text-primary opacity-50">
+                        <svg width="64" height="64" fill="currentColor" viewBox="0 0 16 16">
+                            <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/>
+                            <path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z"/>
+                        </svg>
+                    </div>
+                    <h5 class="fw-bold text-dark">Ready for Patient Evaluation</h5>
+                    <p class="text-muted small mb-3">
+                        Choose a demo preset on the left or enter patient CBC parameters and click "Run Clinical Anemia Classification" to view predictions across all 5 models.
+                    </p>
+                    <div class="d-flex justify-content-center gap-2">
+                        <button class="btn btn-sm btn-outline-primary" onclick="loadPreset('normal')">Try Normal Sample</button>
+                        <button class="btn btn-sm btn-outline-danger" onclick="loadPreset('anemic')">Try Anemic Sample</button>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Model Benchmark & Visualizations Section -->
+    <div class="row mt-5">
+        <div class="col-12">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-white py-3 border-bottom">
+                    <h5 class="card-title fw-bold mb-0">Model Benchmark & Visual Analytics</h5>
+                    <small class="text-muted">Rigorous academic evaluation across all 5 classification algorithms</small>
+                </div>
+                <div class="card-body">
+                    <ul class="nav nav-pills mb-4" id="pills-tab" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active" id="tab-comparison" data-bs-toggle="pill" data-bs-target="#content-comparison" type="button" role="tab">Algorithm Comparison</button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="tab-cm" data-bs-toggle="pill" data-bs-target="#content-cm" type="button" role="tab">Confusion Matrices</button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="tab-roc" data-bs-toggle="pill" data-bs-target="#content-roc" type="button" role="tab">ROC Curves</button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="tab-feat" data-bs-toggle="pill" data-bs-target="#content-feat" type="button" role="tab">Feature Importance</button>
+                        </li>
+                    </ul>
+
+                    <div class="tab-content" id="pills-tabContent">
+                        <div class="tab-pane fade show active text-center" id="content-comparison" role="tabpanel">
+                            <img src="/results/algorithm_comparison.png" class="img-fluid rounded border shadow-sm" alt="Algorithm Comparison">
+                        </div>
+                        <div class="tab-pane fade text-center" id="content-cm" role="tabpanel">
+                            <img src="/results/confusion_matrices.png" class="img-fluid rounded border shadow-sm" alt="Confusion Matrices">
+                        </div>
+                        <div class="tab-pane fade text-center" id="content-roc" role="tabpanel">
+                            <img src="/results/roc_curves.png" class="img-fluid rounded border shadow-sm" alt="ROC Curves">
+                        </div>
+                        <div class="tab-pane fade text-center" id="content-feat" role="tabpanel">
+                            <img src="/results/feature_importance.png" class="img-fluid rounded border shadow-sm" alt="Feature Importance">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<!-- Preset Loader Script -->
+<script>
+function loadPreset(type) {
+    if (type === 'normal') {
+        document.getElementById('hgb').value = '14.2';
+        document.getElementById('rbc').value = '4.80';
+        document.getElementById('mcv').value = '87.5';
+        document.getElementById('mch').value = '29.5';
+        document.getElementById('mchc').value = '33.8';
+    } else if (type === 'anemic') {
+        document.getElementById('hgb').value = '8.5';
+        document.getElementById('rbc').value = '3.20';
+        document.getElementById('mcv').value = '66.0';
+        document.getElementById('mch').value = '19.5';
+        document.getElementById('mchc').value = '28.0';
+    } else if (type === 'microcytosis') {
+        document.getElementById('hgb').value = '13.5';
+        document.getElementById('rbc').value = '5.80';
+        document.getElementById('mcv').value = '70.0';
+        document.getElementById('mch').value = '23.0';
+        document.getElementById('mchc').value = '32.8';
+    } else if (type === 'invalid') {
+        document.getElementById('hgb').value = '-5.0';
+        document.getElementById('rbc').value = '4.80';
+        document.getElementById('mcv').value = '87.5';
+        document.getElementById('mch').value = '29.5';
+        document.getElementById('mchc').value = '33.8';
+    }
+}
+
+function switchEngineAndSubmit(newEngine) {
+    var formSelect = document.getElementById('model_choice');
+    if (formSelect) {
+        formSelect.value = newEngine;
+    }
+    var form = document.getElementById('predictionForm');
+    if (form) {
+        form.submit();
+    }
+}
+
+function updateHeaderSwitcher(val) {
+    var cardSwitcher = document.getElementById('card_engine_switcher');
+    if (cardSwitcher) {
+        cardSwitcher.value = val;
+    }
+}
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

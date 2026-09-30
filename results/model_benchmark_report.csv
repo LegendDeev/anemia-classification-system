@@ -1,0 +1,6 @@
+Algorithm,Model Key,Accuracy (%),Precision (%),Recall (%),F1-Score (%),ROC-AUC (%)
+Logistic Regression,logistic_regression,76.72,76.64,76.72,76.48,91.2
+Decision Tree Classifier,decision_tree,77.78,80.33,77.78,76.94,91.26
+Random Forest Classifier,random_forest,77.91,79.67,77.91,77.53,92.32
+Support Vector Machine (SVM),svm,76.85,78.02,76.85,76.37,91.23
+K-Nearest Neighbors (KNN),knn,73.54,74.12,73.54,73.59,88.36
