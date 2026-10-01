@@ -1,5 +1,7 @@
 # Anemia Classification Using Blood Parameters (CBC)
 
+[live link](https://anemia-classification-system-njx8.onrender.com/predict)
+
 An end-to-end Machine Learning college project for automated clinical classification of anemia-related phenotypes from Complete Blood Count (CBC) laboratory measurements.
 
 [![Python](https://img.shields.io/badge/Python-3.10+-blue.svg)](https://python.org)
